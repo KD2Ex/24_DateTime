@@ -5,71 +5,94 @@
 #include <vector>
 using namespace std;
 
-const time_t START = 0;
-tm ERROR_TIME = *localtime(&START);
+struct PersonBirthday {
+    string name;
+    tm date;
+};
 
-string getClosestDate(map<string, vector<string>> birthdays) {
+int getDaysInDate(tm &date) {
+    int count = 0;
+
+    for (int i = 0; i < date.tm_mon; i++) {
+        switch (i) {
+        case 1:
+            count += 28;
+            break;
+        case 0:
+        case 2:
+        case 4:
+        case 6:
+        case 7:
+        case 9:
+        case 11:
+            count += 31;
+            break;
+        case 3:
+        case 5:
+        case 8:
+        case 10:
+            count += 30;
+            break;
+        default:
+            break;
+        }
+    }
+
+    return count;
+}
+
+tm getNearestDate(vector<PersonBirthday> calendar) {
+    tm nearestDate = calendar[0].date;
     time_t t = time(nullptr);
     tm local = *localtime(&t);
-    string closestDate = birthdays.begin()->first;
-    int closestMonth = stoi(closestDate.substr(5, 2));
-    int closestDay = stoi(closestDate.substr(8, 2));
-    //vector<tm>();
-
-    for (auto & i : birthdays) {
-//        local.tm_hour;
-//        i.first->tm_hour;
-        int mapMonth = stoi(i.first.substr(5, 2));
-        int mapDay = stoi(i.first.substr(8,2));
-        if (mapMonth < local.tm_mon || (mapMonth == local.tm_mon && mapDay < local.tm_mday)) continue;
-
-        int monthDiff = mapMonth - local.tm_mon;
-        int dayDiff = mapDay - local.tm_mday;
-
-
+    vector<PersonBirthday> nearestBirthdays;
+    
+    for (auto & i : calendar) {
+        int diff = getDaysInDate(i.date) - getDaysInDate(local);
+        int minDiff = getDaysInDate(i.date) - getDaysInDate(nearestDate);
+        if (diff < 0) continue;
+        if (diff < minDiff) {
+            minDiff = diff;
+            nearestDate = i.date;
+        }
     }
-    if (&closestDate < &local) {
-        time_t start = 0;
-        return *localtime(&start);
-    }
-    return closestDate;
+    return nearestDate;
 }
 
 int main() {
     string name;
     string inputDate;
-    map <string , vector<string>> birthdays;
+    vector<PersonBirthday> calendar;
 
     while (true) {
-        cout << "Enter the data of birthday: [birthday boy name] [yyyy].[mm].[dd]\n";
+        PersonBirthday person;
+        time_t t = time(nullptr);
+        tm local = *localtime(&t);
+        
+        person.date = local;
 
-
-        cin >> name >> inputDate;
+        cout << "Enter the name:\n";
+        cin >> name;
         if (name == "end") break;
 
-        if (birthdays.find(inputDate) == birthdays.end()) {
-            birthdays.insert(make_pair(inputDate, vector<string>()));
-            birthdays[inputDate].push_back(name);
-        } else {
-            birthdays[inputDate].push_back(name);
-        }
-    }
-    tm closestDate = getClosestDate(birthdays);
+        cout << "Enter the birthday: [YYYY/MM/DD]\n";
 
-    if (&closestDate == &ERROR_TIME) {
-        cout << "Empty!" << endl;
-        return 0;
+        cin >> get_time(&person.date, "%Y/%m/%d");
+        person.name = name;
+        
+        calendar.push_back(person);
     }
 
-    for (auto & i : birthdays) {
-        cout << closestDate.tm_mon << "/" << closestDate.tm_mday << " ";
-        for (auto & j : i.second) {
-            cout << j << ", ";
+    tm nearestDate = getNearestDate(calendar);
+    
+    cout << "Nearest birthday is: " << 
+        (nearestDate.tm_mon + 1) / 10 << (nearestDate.tm_mon + 1) % 10 << 
+        "/" << 
+        nearestDate.tm_mday / 10 << nearestDate.tm_mday % 10 << endl;
+    for (auto & i : calendar) {
+        if (i.date.tm_mon == nearestDate.tm_mon && 
+            i.date.tm_mday == nearestDate.tm_mday) {
+                cout << i.name << endl;
         }
-        cout << endl;
-    }
-    cout << "Closest birthday will be on: " << closestDate.tm_mon << "/" << closestDate.tm_mday << endl;
-    for (auto & i : birthdays[&closestDate]) {
-        cout << i << endl;
     }
 }
