@@ -3,7 +3,6 @@
 #include <map>
 using namespace std;
 
-
 enum Commands {
    BEGIN = 1,
    END,
@@ -61,7 +60,6 @@ int main() {
                 cout << "Enter the name of a new task:\n";
                 cin >> currentTaskName;
                 t = time(nullptr);
-                //cout << t;
             }
                 break;
             case END: {
@@ -71,9 +69,11 @@ int main() {
                 break;
             }
             case STATUS:
-                cout << "Closed tasks:\n";
-                for (auto & i : closedTasks) {
-                    cout << "Task: " << i.first << ". time spent: " << getTime(i.second) << endl;
+                if(!closedTasks.empty()) {
+                    cout << "Closed tasks:\n";
+                    for (auto & i : closedTasks) {
+                        cout << "Task: " << i.first << ". time spent: " << getTime(i.second) << endl;
+                    }
                 }
                 if (!currentTaskName.empty()) cout << endl << "Current task is " << currentTaskName << endl;
                 break;
