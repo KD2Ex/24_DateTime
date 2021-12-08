@@ -1,7 +1,13 @@
 #include <iostream>
 #include <ctime>
 #include <map>
+#include <vector>
 using namespace std;
+
+struct ClosedTask {
+    string name;
+    time_t timeSpent;
+};
 
 enum Commands {
    BEGIN = 1,
@@ -22,7 +28,7 @@ string getTime(time_t timeSpent) {
         + ":" + to_string((seconds / 10)) + to_string(seconds % 10);
 }
 
-pair<string, time_t> closeTask(string& currentTaskName, time_t& t) {
+ClosedTask closeTask(string& currentTaskName, time_t& t) {
     time_t timeSpent = (time_t)difftime(time(nullptr), t);
     t = 0;
 
@@ -32,7 +38,11 @@ pair<string, time_t> closeTask(string& currentTaskName, time_t& t) {
     string taskName = currentTaskName;
     currentTaskName = "";
 
-    return pair<string, time_t>(taskName, timeSpent);
+    ClosedTask closedTask;
+    closedTask.name = taskName;
+    closedTask.timeSpent = timeSpent;
+
+    return closedTask;
 }
 
 int main() {
@@ -42,11 +52,10 @@ int main() {
     commands["status"] = STATUS;
     commands["exit"] = EXIT;
 
+    vector<ClosedTask> closedTasks;
     string inputCommand;
     string currentTaskName;
-    map <string, time_t> closedTasks;
     time_t t = 0;
-
 
 
     while (true) {
@@ -55,7 +64,7 @@ int main() {
         switch (commands[inputCommand]) {
             case BEGIN: {
                 if (!currentTaskName.empty()) {
-                    closedTasks.insert(closeTask(currentTaskName, t));
+                    closedTasks.push_back(closeTask(currentTaskName, t));
                 }
                 cout << "Enter the name of a new task:\n";
                 cin >> currentTaskName;
@@ -64,7 +73,7 @@ int main() {
                 break;
             case END: {
                 if (!currentTaskName.empty()) {
-                    closedTasks.insert(closeTask(currentTaskName, t));
+                    closedTasks.push_back(closeTask(currentTaskName, t));
                 }
                 break;
             }
@@ -72,7 +81,7 @@ int main() {
                 if(!closedTasks.empty()) {
                     cout << "Closed tasks:\n";
                     for (auto & i : closedTasks) {
-                        cout << "Task: " << i.first << ". time spent: " << getTime(i.second) << endl;
+                        cout << "Task: " << i.name << ". time spent: " << getTime(i.timeSpent) << endl;
                     }
                 }
                 if (!currentTaskName.empty()) cout << endl << "Current task is " << currentTaskName << endl;
